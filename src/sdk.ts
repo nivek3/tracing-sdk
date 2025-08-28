@@ -195,6 +195,9 @@ export async function shutdownSDK(
   });
 }
 
+/**
+ * Shutdown the OpenTelemetry SDK
+ */
 export async function shutdownTracing(
   server: Server,
   sdk: NodeSDK,
