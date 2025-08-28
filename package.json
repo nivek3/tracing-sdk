@@ -1,0 +1,63 @@
+{
+  "name": "tracing-sdk",
+  "version": "1.1.0",
+  "description": "Tracing SDK for Node.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/iamnivekx/tracing-sdk"
+  },
+  "type": "module",
+  "packageManager": "pnpm@10.0.0",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "sideEffects": false,
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "lint": "biome lint",
+    "format": "biome format",
+    "typecheck": "tsc --noEmit",
+    "precommit": "lint-staged",
+    "prepare": "husky"
+  },
+  "bugs": {
+    "url": "https://github.com/iamnivekx/tracing-sdk/issues"
+  },
+  "homepage": "https://github.com/iamnivekx/tracing-sdk",
+  "dependencies": {
+    "@opentelemetry/auto-instrumentations-node": "0.62.1",
+    "@opentelemetry/context-async-hooks": "2.0.1",
+    "@opentelemetry/core": "2.0.1",
+    "@opentelemetry/exporter-prometheus": "0.203.0",
+    "@opentelemetry/exporter-trace-otlp-http": "0.203.0",
+    "@opentelemetry/propagator-b3": "2.0.0",
+    "@opentelemetry/propagator-jaeger": "2.0.1",
+    "@opentelemetry/resources": "2.0.1",
+    "@opentelemetry/sdk-metrics": "2.0.1",
+    "@opentelemetry/sdk-node": "0.203.0",
+    "@opentelemetry/sdk-trace-base": "2.0.1",
+    "@opentelemetry/semantic-conventions": "1.36.0",
+    "dotenv": "^17.2.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.2.2",
+    "@opentelemetry/instrumentation": "^0.203.0",
+    "@types/node": "^20.12.12",
+    "husky": "9.1.7",
+    "tsdown": "0.14.2",
+    "typescript": "^5.4.5"
+  }
+}
