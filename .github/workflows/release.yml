@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   release:
-    name: Release / Node 20
+    name: Release / Node 22
     runs-on: ubuntu-latest
 
     steps:
