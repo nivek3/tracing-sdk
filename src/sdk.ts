@@ -1,18 +1,19 @@
-
-
 /**
  * https://www.npmjs.com/package/@opentelemetry/sdk-node
  * https://github.com/open-telemetry/opentelemetry-js#package-version-compatibility
  */
 import 'dotenv/config';
 
-import type { Instrumentation } from '@opentelemetry/instrumentation';
 import type { Server } from 'node:http';
-
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks';
-import { CompositePropagator, W3CBaggagePropagator, W3CTraceContextPropagator } from '@opentelemetry/core';
+import {
+  CompositePropagator,
+  W3CBaggagePropagator,
+  W3CTraceContextPropagator,
+} from '@opentelemetry/core';
 import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
+import type { Instrumentation } from '@opentelemetry/instrumentation';
 import { B3InjectEncoding, B3Propagator } from '@opentelemetry/propagator-b3';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import { NodeSDK, type NodeSDKConfiguration } from '@opentelemetry/sdk-node';
@@ -41,7 +42,7 @@ const {
   OTLP_PROM_PORT,
   // service name, default: unknown
   OTLP_SERVICE_NAME,
-} = process.env
+} = process.env;
 
 export class TracingSDK {
   private isStarted = false;
@@ -117,7 +118,9 @@ export class TracingSDK {
     try {
       this.sdk.start();
       this.isStarted = true;
-      this.logger?.log(`TracingSDK started successfully for service: ${this.options.serviceName}`);
+      this.logger?.log(
+        `TracingSDK started successfully for service: ${this.options.serviceName}`,
+      );
     } catch (error) {
       this.logger?.error('Failed to start TracingSDK:', error);
       throw error;
@@ -144,11 +147,13 @@ export class TracingSDK {
     }
   }
 
-
   /**
    * Setup graceful shutdown
    */
-  async setupGracefulShutdown(server: Server, signals: NodeJS.Signals[] = ['SIGTERM', 'SIGINT']): Promise<void> {
+  async setupGracefulShutdown(
+    server: Server,
+    signals: NodeJS.Signals[] = ['SIGTERM', 'SIGINT'],
+  ): Promise<void> {
     await shutdownTracing(server, this.sdk, signals, this.logger);
   }
 
@@ -177,17 +182,25 @@ export class TracingSDK {
 /**
  * Shutdown the OpenTelemetry SDK
  */
-export async function shutdownSDK(server: Server, sdk: NodeSDK, logger?: Logger): Promise<void> {
+export async function shutdownSDK(
+  server: Server,
+  sdk: NodeSDK,
+  logger?: Logger,
+): Promise<void> {
   server.close(async () => {
     await sdk
       .shutdown()
       .then(() => logger?.log('OpenTelemetry SDK shut down successfully.'))
       .catch((err: unknown) => logger?.error(err));
-  })
+  });
 }
 
-
-export async function shutdownTracing(server: Server, sdk: NodeSDK, signals: NodeJS.Signals[] = ['SIGTERM', 'SIGINT'], logger?: Logger): Promise<void> {
+export async function shutdownTracing(
+  server: Server,
+  sdk: NodeSDK,
+  signals: NodeJS.Signals[] = ['SIGTERM', 'SIGINT'],
+  logger?: Logger,
+): Promise<void> {
   signals.forEach((signal) => {
     process.on(signal, async () => {
       await shutdownSDK(server, sdk, logger);
