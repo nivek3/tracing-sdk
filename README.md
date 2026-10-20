@@ -199,8 +199,7 @@ The SDK supports multiple trace context propagation formats:
 
 - **W3C Trace Context** - Standard HTTP headers
 - **W3C Baggage** - Custom metadata propagation
-- **B3** - Zipkin-style propagation
-- **Jaeger** - Jaeger-style propagation
+- **B3** - Zipkin-style propagation (multi-header encoding)
 
 ## Best Practices
 

@@ -91,7 +91,10 @@ export class TracingSDK {
         port: this.options.promPort,
       });
 
-      config.metricReader = metricReader;
+      config.metricReaders = [metricReader];
+    } else {
+      // Explicitly set empty array to prevent OTEL_METRICS_EXPORTER from enabling metrics
+      config.metricReaders = [];
     }
 
     // Add tracing if enabled
