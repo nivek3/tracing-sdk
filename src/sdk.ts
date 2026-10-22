@@ -5,6 +5,7 @@
 import 'dotenv/config';
 
 import type { Server } from 'node:http';
+import type { InstrumentationConfigMap } from '@opentelemetry/auto-instrumentations-node';
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks';
 import {
   CompositePropagator,
@@ -13,7 +14,6 @@ import {
 } from '@opentelemetry/core';
 import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
-import type { InstrumentationConfigMap } from '@opentelemetry/auto-instrumentations-node';
 import type { Instrumentation } from '@opentelemetry/instrumentation';
 import { B3InjectEncoding, B3Propagator } from '@opentelemetry/propagator-b3';
 import { resourceFromAttributes } from '@opentelemetry/resources';
