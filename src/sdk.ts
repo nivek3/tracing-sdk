@@ -5,6 +5,7 @@
 import 'dotenv/config';
 
 import type { Server } from 'node:http';
+import type { InstrumentationConfigMap } from '@opentelemetry/auto-instrumentations-node';
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks';
 import {
   CompositePropagator,
@@ -32,6 +33,8 @@ export interface TracingSDKOptions {
   enableMetrics?: boolean;
   enableTracing?: boolean;
   instrumentations?: Instrumentation[];
+  /** Applied when `instrumentations` is omitted; ignored when `instrumentations` is provided. */
+  instrumentationConfigMap?: InstrumentationConfigMap;
   setupGracefulShutdown?: boolean;
 }
 
@@ -51,10 +54,16 @@ export class TracingSDK {
   private logger?: Logger;
 
   constructor(options: TracingSDKOptions = {}) {
+    const instrumentations =
+      options.instrumentations !== undefined
+        ? options.instrumentations
+        : getSdkInstrumentations([], options.instrumentationConfigMap);
+
     this.options = {
       enableMetrics: options.enableMetrics ?? true,
       enableTracing: options.enableTracing ?? true,
-      instrumentations: options.instrumentations ?? [],
+      instrumentations,
+      instrumentationConfigMap: options.instrumentationConfigMap ?? {},
       logger: options.logger ?? console,
       promEndpoint: options.promEndpoint ?? OTLP_PROM_ENDPOINT ?? '/metrics',
       promPort: options.promPort ?? Number(OTLP_PROM_PORT ?? 8081),
@@ -69,7 +78,7 @@ export class TracingSDK {
   private createSDK(): NodeSDK {
     const config: Partial<NodeSDKConfiguration> = {
       contextManager: new AsyncLocalStorageContextManager(),
-      instrumentations: getSdkInstrumentations(this.options.instrumentations),
+      instrumentations: this.options.instrumentations,
       resource: resourceFromAttributes({
         [ATTR_SERVICE_NAME]: this.options.serviceName,
       }),
@@ -91,7 +100,10 @@ export class TracingSDK {
         port: this.options.promPort,
       });
 
-      config.metricReader = metricReader;
+      config.metricReaders = [metricReader];
+    } else {
+      // Explicitly set empty array to prevent OTEL_METRICS_EXPORTER from enabling metrics
+      config.metricReaders = [];
     }
 
     // Add tracing if enabled

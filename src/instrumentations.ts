@@ -29,11 +29,9 @@ export function getNestjsConfigMap(): InstrumentationConfigMap {
  */
 export function getSdkInstrumentations(
   extra: Instrumentation[] = [],
-  nodeAutoConfigMap?: InstrumentationConfigMap,
+  nodeAutoConfigMap: InstrumentationConfigMap = {},
 ): Instrumentation[] {
-  const autoInstrumentations = nodeAutoConfigMap
-    ? getNodeAutoInstrumentations(nodeAutoConfigMap)
-    : [];
+  const autoInstrumentations = getNodeAutoInstrumentations(nodeAutoConfigMap);
 
   return [...autoInstrumentations, ...extra];
 }
