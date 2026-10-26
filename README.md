@@ -89,7 +89,8 @@ bootstrap();
 | `promEndpoint`          | `string`            | `'/metrics'`                    | Path for Prometheus metrics endpoint |
 | `enableMetrics`         | `boolean`           | `true`                          | Enable Prometheus metrics export     |
 | `enableTracing`         | `boolean`           | `true`                          | Enable OpenTelemetry tracing         |
-| `instrumentations`      | `Instrumentation[]` | `[]`                            | Additional custom instrumentations   |
+| `instrumentations`      | `Instrumentation[]` | Auto-instrumentations           | Complete list; replaces defaults, including when empty |
+| `instrumentationConfigMap` | `InstrumentationConfigMap` | `getNestjsConfigMap()` | Replaces the default config map; ignored when `instrumentations` is provided |
 | `logger`                | `Logger`            | `console`                       | Custom logger implementation         |
 | `setupGracefulShutdown` | `boolean`           | `true`                          | Auto-setup graceful shutdown         |
 
@@ -103,20 +104,27 @@ bootstrap();
 
 ### Custom Instrumentations
 
-You can add custom instrumentations to the SDK:
+Providing `instrumentations` replaces the entire default list. For example, `[new PrismaInstrumentation()]` enables only Prisma, and `[]` disables all automatic instrumentations.
+
+To append custom instrumentations to the auto-instrumentations while keeping the default health filter, build the complete list explicitly:
 
 ```typescript
-import { TracingSDK } from 'tracing-sdk';
+import { getNestjsConfigMap, getSdkInstrumentations, TracingSDK } from 'tracing-sdk';
 import { PrismaInstrumentation } from '@prisma/instrumentation';
 
 // Create tracing SDK with custom instrumentations
 const tracing = new TracingSDK({
   serviceName: 'my-service',
-  instrumentations: [new PrismaInstrumentation()],
+  instrumentations: getSdkInstrumentations(
+    [new PrismaInstrumentation()],
+    getNestjsConfigMap(),
+  ),
 });
 
 await tracing.start();
 ```
+
+When `instrumentations` is omitted, `instrumentationConfigMap` configures the auto-instrumentations. A custom map replaces `getNestjsConfigMap()`; it is not merged with it. To retain the default health filter, start with `getNestjsConfigMap()` and preserve its HTTP settings when adding overrides.
 
 ### Advanced Configuration
 
@@ -147,7 +155,7 @@ await Promise.all([
 
 ## Supported Instrumentations
 
-The SDK automatically includes the following instrumentations:
+When `instrumentations` is omitted, the SDK uses `getNodeAutoInstrumentations()` with the selected config map. Without environment or programmatic overrides, all instrumentations in that bundle are enabled except `fs` and `host-metrics`. These include:
 
 - **HTTP/HTTPS** - Network request tracing
 - **Express** - Web framework instrumentation
@@ -183,15 +191,21 @@ new TracingSDK(options?: TracingSDKOptions)
 
 ### Prometheus Metrics
 
-The SDK automatically exposes a Prometheus metrics endpoint at `/metrics` (configurable). You can access metrics at:
+When `enableMetrics` is `true`, the SDK exposes a Prometheus metrics endpoint at `/metrics` (configurable). You can access metrics at:
 
 ```
 http://localhost:8081/metrics
 ```
 
+Setting `enableMetrics: false` disables metric export, including exporters selected by `OTEL_METRICS_EXPORTER`.
+
 ### Trace Export
 
 Traces are exported via OTLP HTTP exporter. Configure your OpenTelemetry Collector or backend to receive traces from your application.
+
+Setting `enableTracing: false` disables trace export, including exporters selected by `OTEL_TRACES_EXPORTER`.
+
+Application log export is disabled, including when `OTEL_LOGS_EXPORTER` is set. The `logger` option controls the SDK's own lifecycle messages; it does not configure application log export.
 
 ## Propagation
 
@@ -199,8 +213,7 @@ The SDK supports multiple trace context propagation formats:
 
 - **W3C Trace Context** - Standard HTTP headers
 - **W3C Baggage** - Custom metadata propagation
-- **B3** - Zipkin-style propagation
-- **Jaeger** - Jaeger-style propagation
+- **B3** - Zipkin-style propagation (multi-header encoding)
 
 ## Best Practices
 
@@ -249,17 +262,23 @@ const tracing = new TracingSDK({
 
 ### 4. Health Check Exclusion
 
-Health check endpoints are automatically excluded from tracing to reduce noise:
+When both `instrumentations` and `instrumentationConfigMap` are omitted, the default HTTP configuration excludes every incoming request whose URL starts with `/health`, regardless of method. This includes `/health`, `/healthz`, `/health/live`, `/healthcare`, and URLs with query strings.
+
+The filter in `getNestjsConfigMap()` is:
 
 ```typescript
-// The SDK automatically ignores /health endpoints
-'@opentelemetry/instrumentation-express': { 
-  enabled: true, 
-  ignoreLayers: ['/health'] 
-}
+const instrumentationConfigMap = {
+  '@opentelemetry/instrumentation-http': {
+    ignoreIncomingRequestHook: (request) => (request.url ?? '').startsWith('/health'),
+  },
+};
 ```
 
-## [Examples](https://github.com/iamnivekx/nestjs-prisma-api)
+If either option is provided, retain this filter explicitly as shown in [Custom Instrumentations](#custom-instrumentations).
+
+Instrumentations respect `OTEL_NODE_ENABLED_INSTRUMENTATIONS` and `OTEL_NODE_DISABLED_INSTRUMENTATIONS`. Explicit `enabled` values in a custom `instrumentationConfigMap` take precedence over these environment variables.
+
+## [Examples](https://github.com/nivek3/nestjs-prisma-api)
 
 ## Troubleshooting
 
@@ -298,4 +317,4 @@ This project is licensed under the MIT License.
 
 ## Support
 
-For support and questions, please open an issue on the [GitHub repository](https://github.com/iamnivekx/tracing-sdk/issues).
+For support and questions, please open an issue on the [GitHub repository](https://github.com/nivek3/tracing-sdk/issues).

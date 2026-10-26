@@ -5,20 +5,14 @@ import {
 import type { Instrumentation } from '@opentelemetry/instrumentation';
 
 /**
- * nestjs + ioredis + pg + pino + express instrumentations
- * @returns the default nestjs instrumentations
+ * Default NestJS configuration; instrumentation selection follows OTEL environment variables.
  */
 export function getNestjsConfigMap(): InstrumentationConfigMap {
   return {
-    '@opentelemetry/instrumentation-express': {
-      enabled: true,
-      ignoreLayers: ['/health'],
+    '@opentelemetry/instrumentation-http': {
+      ignoreIncomingRequestHook: (request) =>
+        (request.url ?? '').startsWith('/health'),
     },
-    '@opentelemetry/instrumentation-http': { enabled: true },
-    '@opentelemetry/instrumentation-ioredis': { enabled: true },
-    '@opentelemetry/instrumentation-nestjs-core': { enabled: true },
-    '@opentelemetry/instrumentation-pg': { enabled: true },
-    '@opentelemetry/instrumentation-pino': { enabled: true },
   };
 }
 
@@ -29,11 +23,9 @@ export function getNestjsConfigMap(): InstrumentationConfigMap {
  */
 export function getSdkInstrumentations(
   extra: Instrumentation[] = [],
-  nodeAutoConfigMap?: InstrumentationConfigMap,
+  nodeAutoConfigMap: InstrumentationConfigMap = {},
 ): Instrumentation[] {
-  const autoInstrumentations = nodeAutoConfigMap
-    ? getNodeAutoInstrumentations(nodeAutoConfigMap)
-    : [];
+  const autoInstrumentations = getNodeAutoInstrumentations(nodeAutoConfigMap);
 
   return [...autoInstrumentations, ...extra];
 }
