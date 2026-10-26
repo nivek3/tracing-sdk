@@ -7,7 +7,11 @@ import 'dotenv/config';
 import type { Server } from 'node:http';
 import type { InstrumentationConfigMap } from '@opentelemetry/auto-instrumentations-node';
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks';
-import { CompositePropagator, W3CBaggagePropagator, W3CTraceContextPropagator } from '@opentelemetry/core';
+import {
+  CompositePropagator,
+  W3CBaggagePropagator,
+  W3CTraceContextPropagator,
+} from '@opentelemetry/core';
 import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import type { Instrumentation } from '@opentelemetry/instrumentation';
@@ -17,7 +21,10 @@ import { NodeSDK, type NodeSDKConfiguration } from '@opentelemetry/sdk-node';
 import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-base';
 import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 
-import { getNestjsConfigMap, getSdkInstrumentations } from './instrumentations.js';
+import {
+  getNestjsConfigMap,
+  getSdkInstrumentations,
+} from './instrumentations.js';
 
 export type Logger = Pick<Console, 'log' | 'warn' | 'error'>;
 
@@ -50,9 +57,14 @@ export class TracingSDK {
   private logger?: Logger;
 
   constructor(options: TracingSDKOptions = {}) {
-    const instrumentationConfigMap = options.instrumentationConfigMap ?? (options.instrumentations !== undefined ? {} : getNestjsConfigMap());
+    const instrumentationConfigMap =
+      options.instrumentationConfigMap ??
+      (options.instrumentations !== undefined ? {} : getNestjsConfigMap());
 
-    const instrumentations = options.instrumentations !== undefined ? options.instrumentations : getSdkInstrumentations([], instrumentationConfigMap);
+    const instrumentations =
+      options.instrumentations !== undefined
+        ? options.instrumentations
+        : getSdkInstrumentations([], instrumentationConfigMap);
 
     this.options = {
       enableMetrics: options.enableMetrics ?? true,
@@ -125,7 +137,9 @@ export class TracingSDK {
     try {
       this.sdk.start();
       this.isStarted = true;
-      this.logger?.log(`TracingSDK started successfully for service: ${this.options.serviceName}`);
+      this.logger?.log(
+        `TracingSDK started successfully for service: ${this.options.serviceName}`,
+      );
     } catch (error) {
       this.logger?.error('Failed to start TracingSDK:', error);
       throw error;
@@ -155,7 +169,10 @@ export class TracingSDK {
   /**
    * Setup graceful shutdown
    */
-  async setupGracefulShutdown(server: Server, signals: NodeJS.Signals[] = ['SIGTERM', 'SIGINT']): Promise<void> {
+  async setupGracefulShutdown(
+    server: Server,
+    signals: NodeJS.Signals[] = ['SIGTERM', 'SIGINT'],
+  ): Promise<void> {
     await shutdownTracing(server, this.sdk, signals, this.logger);
   }
 
@@ -184,7 +201,11 @@ export class TracingSDK {
 /**
  * Shutdown the OpenTelemetry SDK
  */
-export async function shutdownSDK(server: Server, sdk: NodeSDK, logger?: Logger): Promise<void> {
+export async function shutdownSDK(
+  server: Server,
+  sdk: NodeSDK,
+  logger?: Logger,
+): Promise<void> {
   server.close(async () => {
     await sdk
       .shutdown()
@@ -196,7 +217,12 @@ export async function shutdownSDK(server: Server, sdk: NodeSDK, logger?: Logger)
 /**
  * Shutdown the OpenTelemetry SDK
  */
-export async function shutdownTracing(server: Server, sdk: NodeSDK, signals: NodeJS.Signals[] = ['SIGTERM', 'SIGINT'], logger?: Logger): Promise<void> {
+export async function shutdownTracing(
+  server: Server,
+  sdk: NodeSDK,
+  signals: NodeJS.Signals[] = ['SIGTERM', 'SIGINT'],
+  logger?: Logger,
+): Promise<void> {
   signals.forEach((signal) => {
     process.on(signal, async () => {
       await shutdownSDK(server, sdk, logger);

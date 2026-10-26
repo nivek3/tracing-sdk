@@ -1,4 +1,7 @@
-import { getNodeAutoInstrumentations, type InstrumentationConfigMap } from '@opentelemetry/auto-instrumentations-node';
+import {
+  getNodeAutoInstrumentations,
+  type InstrumentationConfigMap,
+} from '@opentelemetry/auto-instrumentations-node';
 import type { Instrumentation } from '@opentelemetry/instrumentation';
 
 /**
@@ -7,7 +10,8 @@ import type { Instrumentation } from '@opentelemetry/instrumentation';
 export function getNestjsConfigMap(): InstrumentationConfigMap {
   return {
     '@opentelemetry/instrumentation-http': {
-      ignoreIncomingRequestHook: (request) => (request.url ?? '').startsWith('/health'),
+      ignoreIncomingRequestHook: (request) =>
+        (request.url ?? '').startsWith('/health'),
     },
   };
 }
@@ -17,7 +21,10 @@ export function getNestjsConfigMap(): InstrumentationConfigMap {
  * @param nodeAutoConfigMap - the node auto instrumentations config map
  * @returns
  */
-export function getSdkInstrumentations(extra: Instrumentation[] = [], nodeAutoConfigMap: InstrumentationConfigMap = {}): Instrumentation[] {
+export function getSdkInstrumentations(
+  extra: Instrumentation[] = [],
+  nodeAutoConfigMap: InstrumentationConfigMap = {},
+): Instrumentation[] {
   const autoInstrumentations = getNodeAutoInstrumentations(nodeAutoConfigMap);
 
   return [...autoInstrumentations, ...extra];
