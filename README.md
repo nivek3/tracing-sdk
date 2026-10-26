@@ -251,14 +251,15 @@ const tracing = new TracingSDK({
 Health check endpoints are automatically excluded from tracing to reduce noise:
 
 ```typescript
-// The SDK automatically ignores /health endpoints
-'@opentelemetry/instrumentation-express': { 
-  enabled: true, 
-  ignoreLayers: ['/health'] 
+// The SDK configuration ignores incoming requests starting with /health, including /healthz
+'@opentelemetry/instrumentation-http': {
+  ignoreIncomingRequestHook: (request) => (request.url ?? '').startsWith('/health'),
 }
 ```
 
-## [Examples](https://github.com/iamnivekx/nestjs-prisma-api)
+Instrumentations respect `OTEL_NODE_ENABLED_INSTRUMENTATIONS` and `OTEL_NODE_DISABLED_INSTRUMENTATIONS`. Explicit `enabled` values in a custom `instrumentationConfigMap` take precedence over these environment variables.
+
+## [Examples](https://github.com/nivek3/nestjs-prisma-api)
 
 ## Troubleshooting
 
@@ -297,4 +298,4 @@ This project is licensed under the MIT License.
 
 ## Support
 
-For support and questions, please open an issue on the [GitHub repository](https://github.com/iamnivekx/tracing-sdk/issues).
+For support and questions, please open an issue on the [GitHub repository](https://github.com/nivek3/tracing-sdk/issues).

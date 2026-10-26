@@ -4,7 +4,7 @@
   "description": "Tracing SDK for Node.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/iamnivekx/tracing-sdk"
+    "url": "https://github.com/nivek3/tracing-sdk"
   },
   "type": "module",
   "packageManager": "pnpm@10.0.0",
@@ -34,9 +34,9 @@
     "prepare": "husky"
   },
   "bugs": {
-    "url": "https://github.com/iamnivekx/tracing-sdk/issues"
+    "url": "https://github.com/nivek3/tracing-sdk/issues"
   },
-  "homepage": "https://github.com/iamnivekx/tracing-sdk",
+  "homepage": "https://github.com/nivek3/tracing-sdk",
   "dependencies": {
     "@opentelemetry/auto-instrumentations-node": "0.81.2",
     "@opentelemetry/context-async-hooks": "2.12.0",
