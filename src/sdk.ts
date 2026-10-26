@@ -21,7 +21,10 @@ import { NodeSDK, type NodeSDKConfiguration } from '@opentelemetry/sdk-node';
 import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-base';
 import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 
-import { getSdkInstrumentations } from './instrumentations.js';
+import {
+  getNestjsConfigMap,
+  getSdkInstrumentations,
+} from './instrumentations.js';
 
 export type Logger = Pick<Console, 'log' | 'warn' | 'error'>;
 
@@ -54,16 +57,20 @@ export class TracingSDK {
   private logger?: Logger;
 
   constructor(options: TracingSDKOptions = {}) {
+    const instrumentationConfigMap =
+      options.instrumentationConfigMap ??
+      (options.instrumentations !== undefined ? {} : getNestjsConfigMap());
+
     const instrumentations =
       options.instrumentations !== undefined
         ? options.instrumentations
-        : getSdkInstrumentations([], options.instrumentationConfigMap);
+        : getSdkInstrumentations([], instrumentationConfigMap);
 
     this.options = {
       enableMetrics: options.enableMetrics ?? true,
       enableTracing: options.enableTracing ?? true,
       instrumentations,
-      instrumentationConfigMap: options.instrumentationConfigMap ?? {},
+      instrumentationConfigMap,
       logger: options.logger ?? console,
       promEndpoint: options.promEndpoint ?? OTLP_PROM_ENDPOINT ?? '/metrics',
       promPort: options.promPort ?? Number(OTLP_PROM_PORT ?? 8081),
