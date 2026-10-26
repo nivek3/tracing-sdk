@@ -35,8 +35,9 @@ export interface TracingSDKOptions {
   promEndpoint?: string;
   enableMetrics?: boolean;
   enableTracing?: boolean;
+  /** Complete instrumentation list; replaces defaults, including when empty. */
   instrumentations?: Instrumentation[];
-  /** Applied when `instrumentations` is omitted; ignored when `instrumentations` is provided. */
+  /** Replaces the default config map when `instrumentations` is omitted; otherwise ignored. */
   instrumentationConfigMap?: InstrumentationConfigMap;
   setupGracefulShutdown?: boolean;
 }
@@ -86,6 +87,8 @@ export class TracingSDK {
     const config: Partial<NodeSDKConfiguration> = {
       contextManager: new AsyncLocalStorageContextManager(),
       instrumentations: this.options.instrumentations,
+      // Prevent NodeSDK from enabling OTLP log export through its environment fallback.
+      logRecordProcessors: [],
       resource: resourceFromAttributes({
         [ATTR_SERVICE_NAME]: this.options.serviceName,
       }),
@@ -119,6 +122,9 @@ export class TracingSDK {
       const spanProcessor = new BatchSpanProcessor(traceExporter);
 
       config.spanProcessors = [spanProcessor];
+    } else {
+      // Prevent the environment fallback from enabling trace export.
+      config.spanProcessors = [];
     }
 
     return new NodeSDK(config);
